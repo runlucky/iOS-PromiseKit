@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Foundation
 import PromiseKit
 
 class ViewController: UIViewController {
@@ -15,28 +16,40 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         print("hello, 🍄")
 
-        _ = Promise<String> { seal in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                seal.fulfill("DONE!")
-                print(1)
-            }
-        }.then { result -> Promise<String> in
-            Promise<String> { seal in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    print(2)
-                    print("result: " + result)
-                    seal.fulfill("DONE!!")
-                }
-            }
-        }.done { value in
-            print(3)
-            print(value)
+        let promises = [1, 2, 3, nil, 4, 5, 6, 7, 8, 9].map { x -> Promise<String> in
+            return hoge(x)
         }
 
-        print(4)
+        when(resolved: promises).done { values in
+            values.forEach {
+                print($0)
+            }
+        }
+
+//        print("a")
+//        firstly {
+//            hoge(false)
+//        }.done { result in
+//            print(result)
+//        }.catch { error in
+//            print(error)
+//        }
+//        print("d")
+
     }
 
-    // Do any additional setup after loading the view, typically from a nib.
+    func hoge(_ value: Int?) -> Promise<String> {
+        return Promise<String> { resolver in
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(arc4random_uniform(5))) {
+                print(value ?? 0)
+                guard let value = value else {
+                    return resolver.reject(PromiseError())
+                }
+                return resolver.fulfill(value.description)
+            }
+
+        }
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -44,3 +57,6 @@ class ViewController: UIViewController {
     }
 }
 
+class PromiseError: Error {
+    let result: String = ""
+}
