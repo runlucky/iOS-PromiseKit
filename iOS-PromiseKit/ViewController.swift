@@ -16,36 +16,42 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         print("hello, 🍄")
 
-        let promises = [1, 2, 3, nil, 4, 5, 6, 7, 8, 9].map { x -> Promise<String> in
-            return hoge(x)
-        }
-
-        when(resolved: promises).done { values in
-            values.forEach {
-                print($0)
-            }
-        }
-
-//        print("a")
-//        firstly {
-//            hoge(false)
-//        }.done { result in
-//            print(result)
-//        }.catch { error in
-//            print(error)
+        let promises = [1, 2, 3, nil, 4, 5, 6, 7, 8, 9]
+//        let promises = [1, 2, 3, nil, 4, 5, 6, 7, 8, 9].map { x -> Promise<String> in
+//            return hoge(x)
 //        }
-//        print("d")
+//        when(resolved: promises).done { values in
+//            values.forEach {
+//                print($0)
+//            }
+//        }
 
+        aaa(promises, 0)
+
+        print("a")
+    }
+
+    func aaa(_ promises: [Int?], _ index: Int) -> Promise<String> {
+        if promises.count == index {
+            let a = Promise.value("");
+            return a
+        }
+        return firstly {
+            hoge(promises[index])
+        }.ensure {
+            self.aaa(promises, index + 1)
+        }
     }
 
     func hoge(_ value: Int?) -> Promise<String> {
         return Promise<String> { resolver in
+            print("\(value ?? 0) start")
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(arc4random_uniform(5))) {
-                print(value ?? 0)
+                print("\(value ?? 0) end")
                 guard let value = value else {
                     return resolver.reject(PromiseError())
                 }
-                return resolver.fulfill(value.description)
+                return resolver.fulfill(value.description + "return")
             }
 
         }
